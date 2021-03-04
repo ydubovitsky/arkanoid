@@ -1,3 +1,8 @@
+const CONTROLL_BUTTONS = {
+    LEFT: 'a',
+    RIGHT: 'd'
+}
+
 let game = {
 
     context: null,
@@ -20,16 +25,9 @@ let game = {
 
     platformMoveHandler() {
         window.addEventListener('keypress', event => {
-            switch(event.key) {
-                case 'a' : {
-                    this.platform.moveLeft();
-                    this.render();
-                    break;
-                }
-                case 'd' : {
-                    this.platform.moveRight();
-                    this.render();
-                }
+            if (event.key === CONTROLL_BUTTONS.LEFT || CONTROLL_BUTTONS.RIGHT) {
+                this.platform.move(event.key);
+                this.render();
             }
         })
     },
@@ -39,8 +37,8 @@ let game = {
         let col = 6;
         let offset = 70;
 
-        for(let i = 0; i < col; i++) {
-            for(let j = 0; j < row; j++) {
+        for (let i = 0; i < col; i++) {
+            for (let j = 0; j < row; j++) {
                 this.blocks.push({
                     x: 70 * i + offset,
                     y: 30 * j + offset
@@ -120,12 +118,15 @@ game.platform = {
     y: 260,
     offset: 6,
 
-    moveRight() {
-        this.x += this.offset;
-    },
-
-    moveLeft(){
-        this.x -= this.offset;
+    move(key) {
+        if (key === CONTROLL_BUTTONS.RIGHT) {
+            game.ball.x += this.offset;
+            this.x += this.offset;
+        }
+        if (key === CONTROLL_BUTTONS.LEFT) {
+            game.ball.x -= this.offset;
+            this.x -= this.offset;
+        }
     }
 }
 
