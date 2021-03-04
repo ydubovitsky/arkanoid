@@ -2,13 +2,15 @@ let game = {
 
     context: null,
 
-    ball: null,
+    ball: null, // Objects
     platform: null,
+    blocks: [],
 
-    objectsAnimation: {
+    objectsAnimation: { // VISUAL objects components
         background: null,
         ball: null,
-        platform: null
+        platform: null,
+        block: null
     },
 
     initialize() {
@@ -31,7 +33,22 @@ let game = {
         }
     },
 
-    render() {
+    blocksInit() { // This method is responsible for the arrangement of blocks
+        let row = 3;
+        let col = 6;
+        let offset = 70;
+
+        for(let i = 0; i < col; i++) {
+            for(let j = 0; j < row; j++) {
+                this.blocks.push({
+                    x: 70 * i + offset,
+                    y: 30 * j + offset
+                })
+            }
+        }
+    },
+
+    render() { // Graphic rendering of all objects
         for (let key in this.objectsAnimation) {
             window.requestAnimationFrame(() => {
                 switch (key) {
@@ -53,7 +70,13 @@ let game = {
                         );
                         break;
                     }
-                    default: {
+                    case 'block': {
+                        this.blocks.forEach(block => {
+                            this.context.drawImage(this.objectsAnimation[key], block.x, block.y);
+                        })
+                        break;
+                    }
+                    case 'platform': {
                         this.context.drawImage(this.objectsAnimation[key], this[key].x, this[key].y);
                     }
                 }
@@ -63,6 +86,7 @@ let game = {
 
     start() {
         this.initialize();
+        this.blocksInit();
         this.preload(() => this.render());
     }
 };
