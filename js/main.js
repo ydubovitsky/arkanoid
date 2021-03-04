@@ -2,7 +2,10 @@ let game = {
 
     context: null,
 
-    objects: {
+    ball: null,
+    platform: null,
+
+    objectsAnimation: {
         background: null,
         ball: null,
         platform: null
@@ -12,14 +15,14 @@ let game = {
         this.context = document.querySelector('#canvasId').getContext('2d');
     },
 
-    preload (callBack) {
+    preload(callBack) {
         let start = 0;
-        let end = Object.keys(this.objects).length;
+        let end = Object.keys(this.objectsAnimation).length;
 
-        for (let key in this.objects) {
-            this.objects[key] = new Image();
-            this.objects[key].src = `../img/${key}.png`;
-            this.objects[key].addEventListener('load', () => {
+        for (let key in this.objectsAnimation) {
+            this.objectsAnimation[key] = new Image();
+            this.objectsAnimation[key].src = `../img/${key}.png`;
+            this.objectsAnimation[key].addEventListener('load', () => {
                 ++start;
                 if (start >= end) {
                     callBack();
@@ -29,9 +32,31 @@ let game = {
     },
 
     render() {
-        for (let key in this.objects) {
+        for (let key in this.objectsAnimation) {
             window.requestAnimationFrame(() => {
-                this.context.drawImage(this.objects[key], 0, 0);
+                switch (key) {
+                    case 'background': {
+                        this.context.drawImage(this.objectsAnimation[key], 0, 0);
+                        break;
+                    }
+                    case 'ball': {
+                        this.context.drawImage(
+                            this.objectsAnimation[key],
+                            0,
+                            0,
+                            this[key].width,
+                            this[key].height,
+                            this[key].x,
+                            this[key].y,
+                            this[key].width,
+                            this[key].height
+                        );
+                        break;
+                    }
+                    default: {
+                        this.context.drawImage(this.objectsAnimation[key], this[key].x, this[key].y);
+                    }
+                }
             });
         }
     },
@@ -41,6 +66,18 @@ let game = {
         this.preload(() => this.render());
     }
 };
+
+game.ball = {
+    x: 320,
+    y: 240,
+    width: 20,
+    height: 20
+}
+
+game.platform = {
+    x: 280,
+    y: 260
+}
 
 window.addEventListener('load', () => {
     game.start();
