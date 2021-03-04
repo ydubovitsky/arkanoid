@@ -15,22 +15,23 @@ let game = {
 
     initialize() {
         this.context = document.querySelector('#canvasId').getContext('2d');
+        this.platformMoveHandler();
     },
 
-    preload(callBack) {
-        let start = 0;
-        let end = Object.keys(this.objectsAnimation).length;
-
-        for (let key in this.objectsAnimation) {
-            this.objectsAnimation[key] = new Image();
-            this.objectsAnimation[key].src = `../img/${key}.png`;
-            this.objectsAnimation[key].addEventListener('load', () => {
-                ++start;
-                if (start >= end) {
-                    callBack();
+    platformMoveHandler() {
+        window.addEventListener('keypress', event => {
+            switch(event.key) {
+                case 'a' : {
+                    this.platform.moveLeft();
+                    this.render();
+                    break;
                 }
-            })
-        }
+                case 'd' : {
+                    this.platform.moveRight();
+                    this.render();
+                }
+            }
+        })
     },
 
     blocksInit() { // This method is responsible for the arrangement of blocks
@@ -45,6 +46,22 @@ let game = {
                     y: 30 * j + offset
                 })
             }
+        }
+    },
+
+    preload(callBack) { // callBack = this.render()
+        let start = 0;
+        let end = Object.keys(this.objectsAnimation).length;
+
+        for (let key in this.objectsAnimation) {
+            this.objectsAnimation[key] = new Image();
+            this.objectsAnimation[key].src = `../img/${key}.png`;
+            this.objectsAnimation[key].addEventListener('load', () => {
+                ++start;
+                if (start >= end) {
+                    callBack();
+                }
+            })
         }
     },
 
@@ -100,7 +117,16 @@ game.ball = {
 
 game.platform = {
     x: 280,
-    y: 260
+    y: 260,
+    offset: 6,
+
+    moveRight() {
+        this.x += this.offset;
+    },
+
+    moveLeft(){
+        this.x -= this.offset;
+    }
 }
 
 window.addEventListener('load', () => {
