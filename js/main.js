@@ -1,6 +1,7 @@
 const CONTROLL_BUTTONS = {
     LEFT: 'a',
-    RIGHT: 'd'
+    RIGHT: 'd',
+    SPACE: 's'
 }
 
 let game = {
@@ -20,13 +21,18 @@ let game = {
 
     initialize() {
         this.context = document.querySelector('#canvasId').getContext('2d');
-        this.platformMoveHandler();
+        this.commandKeyHandler();
     },
 
-    platformMoveHandler() {
+    commandKeyHandler() {
         window.addEventListener('keypress', event => {
-            if (event.key === CONTROLL_BUTTONS.LEFT || CONTROLL_BUTTONS.RIGHT) {
+            if (event.key === CONTROLL_BUTTONS.LEFT || CONTROLL_BUTTONS.RIGHT || CONTROLL_BUTTONS.SPACE) {
+                this.platform.launchBall(event.key);
                 this.platform.move(event.key);
+                this.render();
+            }
+            if (event.key === CONTROLL_BUTTONS.SPACE) {
+                this.ball.start();
                 this.render();
             }
         })
@@ -97,6 +103,10 @@ let game = {
                 }
             });
         }
+        setTimeout(() => {
+            console.log('Wait...')
+        }, 1000);
+        this.render();
     },
 
     start() {
@@ -110,21 +120,35 @@ game.ball = {
     x: 320,
     y: 240,
     width: 20,
-    height: 20
+    height: 20,
+
+    start() {
+        this.y -= 5;
+    }
 }
 
 game.platform = {
     x: 280,
     y: 260,
     offset: 6,
+    ball: game.ball,
+
+    launchBall(key) {
+        key === CONTROLL_BUTTONS.SPACE ? ( // Не особо читаемо =)
+            this.ball !== null ? () => {
+                this.ball.start();
+                this.ball = null
+            } : null
+        ) : null
+    },
 
     move(key) {
         if (key === CONTROLL_BUTTONS.RIGHT) {
-            game.ball.x += this.offset;
+            this.ball !== null ? this.ball.x += this.offset : null; //TODO Улучшить этот метод
             this.x += this.offset;
         }
         if (key === CONTROLL_BUTTONS.LEFT) {
-            game.ball.x -= this.offset;
+            this.ball !== null ? this.ball.x -= this.offset : null;
             this.x -= this.offset;
         }
     }
