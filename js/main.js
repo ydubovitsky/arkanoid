@@ -105,13 +105,19 @@ let game = {
                     }
                 });
             }
-        }, 10)
+        }, 5)
     },
 
     start() {
         this.initialize();
         this.blocksInit();
         this.preload(() => this.render());
+    },
+
+    util: { // utils methods
+        random : (min, max) => { // random value 
+            return Math.round(Math.random() * (max - min) + min);
+        }
     }
 };
 
@@ -122,8 +128,10 @@ game.ball = {
     height: 20,
 
     start() {
+        const offset = game.util.random(-10, 10); // start / end offsets
         setInterval(() => {
             this.y -= 5;
+            this.x -= offset;
         }, 30);
     }
 }
