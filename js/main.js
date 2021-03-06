@@ -11,7 +11,8 @@ let game = {
     ball: null, // Objects
     platform: null,
     blocks: [],
-    settings : { // game settings
+    qwewer: 800,
+    settings: { // game settings
         width: 800,
         height: 600,
     },
@@ -35,6 +36,7 @@ let game = {
                 this.platform.move(event.key);
             }
         })
+
     },
 
     blocksInit() { // This method is responsible for the arrangement of blocks
@@ -45,10 +47,18 @@ let game = {
         for (let i = 0; i < col; i++) {
             for (let j = 0; j < row; j++) {
                 this.blocks.push({
+                    width: 170,
+                    height: 35,
                     x: 170 * i + offset, //TODO вынести фиксированные значения вне метода
                     y: 35 * j + offset
                 })
             }
+        }
+    },
+
+    blocksStrike() {
+        for (block of this.blocks) {
+            this.ball.strike(block);
         }
     },
 
@@ -67,6 +77,7 @@ let game = {
             })
         }
     },
+
 
     render() { // Graphic rendering of all objects
         setInterval(() => {
@@ -115,7 +126,7 @@ let game = {
     },
 
     util: { // utils methods
-        random : (min, max) => { // random value 
+        random: (min, max) => { // random value 
             return Math.round(Math.random() * (max - min) + min);
         }
     }
@@ -126,13 +137,55 @@ game.ball = {
     y: 450,
     width: 20,
     height: 20,
+    dy: 5,
+    dx: 5,
+    offset: game.util.random(-10, 10), // start / end offsets
 
     start() {
-        const offset = game.util.random(-10, 10); // start / end offsets
+        this.x -= this.offset; // start offset
+
         setInterval(() => {
-            this.y -= 5;
-            this.x -= offset;
+            this.y -= this.dy;
+            this.x -= this.dx;
+
+            game.blocksStrike(); //TODO bad bad decision
+            this.outside();
         }, 30);
+    },
+
+    strike(block) {
+        ballL = this.x, // border coordinates of blocks and ball
+            ballR = this.x + this.width,
+            ballT = this.y,
+            ballB = this.y + this.height;
+
+        blockL = block.x,
+            blockR = block.x + block.width,
+            blockT = block.y,
+            blockB = block.y + block.height;
+
+        if (
+            ballR > blockL &&
+            ballT < blockB &&
+            ballL < blockR &&
+            ballB > blockT
+        ) { // change ball direction
+            this.dy = -this.dy;
+            this.dx = -this.dx;
+        }
+    },
+
+    exitOutside() {
+        ballL = this.x, // border coordinates of blocks and ball
+        ballR = this.x + this.width,
+        ballT = this.y,
+        ballB = this.y + this.height;
+        if(ballL < 0 || ballR > game.settings.width) {
+            this.dx *= -1; // change ball direction
+        }
+        if(ballT < 0 || ballB > game.settings.height) {
+            this.dy *= -1; 
+        }
     }
 }
 
@@ -143,7 +196,7 @@ game.platform = {
     ball: game.ball,
 
     launchBall(key) {
-        if(key === CONTROLL_BUTTONS.SPACE && this.ball !== null) {
+        if (key === CONTROLL_BUTTONS.SPACE && this.ball !== null) {
             this.ball.start();
             this.ball = null;
         }
@@ -158,12 +211,6 @@ game.platform = {
             this.ball !== null ? this.ball.x -= this.offset : null;
             this.x -= this.offset;
         }
-    }
-}
-
-game.settings = {
-    setSettings() {
-        // some logic
     }
 }
 
