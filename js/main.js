@@ -30,13 +30,11 @@ let game = {
     },
 
     commandKeyHandler() {
-        window.addEventListener('keypress', event => {
+        window.addEventListener('keydown', event => {
             if (event.key === CONTROLL_BUTTONS.LEFT || CONTROLL_BUTTONS.RIGHT || CONTROLL_BUTTONS.SPACE) {
-                this.platform.launchBall(event.key);
                 this.platform.move(event.key);
             }
-        })
-
+        });
     },
 
     blocksInit() { // This method is responsible for the arrangement of blocks
@@ -78,51 +76,55 @@ let game = {
         }
     },
 
-
     render() { // Graphic rendering of all objects
-        setInterval(() => {
-            this.context.clearRect(0, 0, this.settings.width, this.settings.height); // clear previous images
+        this.context.clearRect(0, 0, this.settings.width, this.settings.height); // clear previous images
 
-            for (let key in this.objectsAnimation) {
-                window.requestAnimationFrame(() => {
-                    switch (key) {
-                        case 'background': {
-                            this.context.drawImage(this.objectsAnimation[key], 0, 0);
-                            break;
-                        }
-                        case 'ball': {
-                            this.context.drawImage(
-                                this.objectsAnimation[key],
-                                0,
-                                0,
-                                this[key].width,
-                                this[key].height,
-                                this[key].x,
-                                this[key].y,
-                                this[key].width,
-                                this[key].height
-                            );
-                            break;
-                        }
-                        case 'block': {
-                            this.blocks.forEach(block => {
-                                this.context.drawImage(this.objectsAnimation[key], block.x, block.y);
-                            })
-                            break;
-                        }
-                        case 'platform': {
-                            this.context.drawImage(this.objectsAnimation[key], this[key].x, this[key].y);
-                        }
+        for (let key in this.objectsAnimation) {
+            window.requestAnimationFrame(() => {
+                switch (key) {
+                    case 'background': {
+                        this.context.drawImage(this.objectsAnimation[key], 0, 0);
+                        break;
                     }
-                });
-            }
-        }, 5)
+                    case 'ball': {
+                        this.context.drawImage(
+                            this.objectsAnimation[key],
+                            0,
+                            0,
+                            this[key].width,
+                            this[key].height,
+                            this[key].x,
+                            this[key].y,
+                            this[key].width,
+                            this[key].height
+                        );
+                        break;
+                    }
+                    case 'block': {
+                        this.blocks.forEach(block => {
+                            this.context.drawImage(this.objectsAnimation[key], block.x, block.y);
+                        })
+                        break;
+                    }
+                    case 'platform': {
+                        this.context.drawImage(this.objectsAnimation[key], this[key].x, this[key].y);
+                    }
+                }
+            });
+        }
+    },
+
+    update() {
+        setInterval(() => {
+            this.render();
+        }, 10)
     },
 
     start() {
         this.initialize();
         this.blocksInit();
         this.preload(() => this.render());
+        this.update();
     },
 
     util: { // utils methods
@@ -133,27 +135,26 @@ let game = {
 };
 
 game.ball = {
-    x: 390,
+    x: 400,
     y: 450,
     width: 20,
     height: 20,
-    dy: 5,
-    dx: 5,
+    dy: 1,
+    dx: 1,
     offset: game.util.random(-10, 10), // start / end offsets
 
-    start() {
-        this.x -= this.offset; // start offset
-
+    move() {
         setInterval(() => {
             this.y -= this.dy;
             this.x -= this.dx;
 
             game.blocksStrike(); //TODO bad bad decision
-            this.outside();
-        }, 30);
+            this.exitOutside();
+            this.bouncePlatform();
+        }, 10);
     },
 
-    strike(block) {
+    strike(block) { //TODO Объединить методы, который считывают границы
         ballL = this.x, // border coordinates of blocks and ball
             ballR = this.x + this.width,
             ballT = this.y,
@@ -170,48 +171,70 @@ game.ball = {
             ballL < blockR &&
             ballB > blockT
         ) { // change ball direction
-            this.dy = -this.dy;
-            this.dx = -this.dx;
+            this.dy *= -this.dy;
+            this.dx *= -this.dx;
         }
     },
 
     exitOutside() {
         ballL = this.x, // border coordinates of blocks and ball
-        ballR = this.x + this.width,
-        ballT = this.y,
-        ballB = this.y + this.height;
-        if(ballL < 0 || ballR > game.settings.width) {
+            ballR = this.x + this.width,
+            ballT = this.y,
+            ballB = this.y + this.height;
+        if (ballL < 0 || ballR > game.settings.width) {
             this.dx *= -1; // change ball direction
         }
-        if(ballT < 0 || ballB > game.settings.height) {
-            this.dy *= -1; 
+        if (ballT < 0 || ballB > game.settings.height) {
+            this.dy *= -1;
+        }
+    },
+
+    bouncePlatform() {
+        // border coordinates of blocks and ball
+        platformR = game.platform.x + game.platform.width;
+        platformT = game.platform.y;
+        platformB = game.platform.y + game.platform.height;
+        platformL = game.platform.x;
+
+        ballR = this.x + this.width;
+        ballT = this.y;
+        ballB = this.y + this.height;
+        ballL = this.x;
+
+        if (
+            ballR > platformL &&
+            ballT < platformB &&
+            ballL < platformR &&
+            ballB > platformT
+        ) { // change ball direction
+            this.dy *= -1;
         }
     }
 }
 
 game.platform = {
-    x: 280,
-    y: 460,
+    x: 271,
+    y: 470,
+    width: 271,
+    height: 81,
     offset: 6,
+    ballLaunch: false,
     ball: game.ball,
 
-    launchBall(key) {
-        if (key === CONTROLL_BUTTONS.SPACE && this.ball !== null) {
-            this.ball.start();
-            this.ball = null;
-        }
-    },
-
     move(key) {
+        if (key === CONTROLL_BUTTONS.SPACE && !this.ballLaunch) {
+            this.ball.move();
+            this.ballLaunch = !this.ballLaunch;
+        }
         if (key === CONTROLL_BUTTONS.RIGHT) {
-            this.ball !== null ? this.ball.x += this.offset : null; //TODO Улучшить этот метод
+            this.ballLaunch === false ? this.ball.x += this.offset : null; //TODO Улучшить этот метод
             this.x += this.offset;
         }
         if (key === CONTROLL_BUTTONS.LEFT) {
-            this.ball !== null ? this.ball.x -= this.offset : null;
+            this.ballLaunch === false ? this.ball.x -= this.offset : null;
             this.x -= this.offset;
         }
-    }
+    },
 }
 
 window.addEventListener('load', () => {
