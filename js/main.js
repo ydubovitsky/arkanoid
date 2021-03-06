@@ -11,6 +11,10 @@ let game = {
     ball: null, // Objects
     platform: null,
     blocks: [],
+    settings : { // game settings
+        width: 800,
+        height: 600,
+    },
 
     objectsAnimation: { // VISUAL objects components
         background: null,
@@ -29,25 +33,20 @@ let game = {
             if (event.key === CONTROLL_BUTTONS.LEFT || CONTROLL_BUTTONS.RIGHT || CONTROLL_BUTTONS.SPACE) {
                 this.platform.launchBall(event.key);
                 this.platform.move(event.key);
-                this.render();
-            }
-            if (event.key === CONTROLL_BUTTONS.SPACE) {
-                this.ball.start();
-                this.render();
             }
         })
     },
 
     blocksInit() { // This method is responsible for the arrangement of blocks
         let row = 3;
-        let col = 6;
+        let col = 4;
         let offset = 70;
 
         for (let i = 0; i < col; i++) {
             for (let j = 0; j < row; j++) {
                 this.blocks.push({
-                    x: 70 * i + offset,
-                    y: 30 * j + offset
+                    x: 170 * i + offset, //TODO вынести фиксированные значения вне метода
+                    y: 35 * j + offset
                 })
             }
         }
@@ -70,43 +69,43 @@ let game = {
     },
 
     render() { // Graphic rendering of all objects
-        for (let key in this.objectsAnimation) {
-            window.requestAnimationFrame(() => {
-                switch (key) {
-                    case 'background': {
-                        this.context.drawImage(this.objectsAnimation[key], 0, 0);
-                        break;
+        setInterval(() => {
+            this.context.clearRect(0, 0, this.settings.width, this.settings.height); // clear previous images
+
+            for (let key in this.objectsAnimation) {
+                window.requestAnimationFrame(() => {
+                    switch (key) {
+                        case 'background': {
+                            this.context.drawImage(this.objectsAnimation[key], 0, 0);
+                            break;
+                        }
+                        case 'ball': {
+                            this.context.drawImage(
+                                this.objectsAnimation[key],
+                                0,
+                                0,
+                                this[key].width,
+                                this[key].height,
+                                this[key].x,
+                                this[key].y,
+                                this[key].width,
+                                this[key].height
+                            );
+                            break;
+                        }
+                        case 'block': {
+                            this.blocks.forEach(block => {
+                                this.context.drawImage(this.objectsAnimation[key], block.x, block.y);
+                            })
+                            break;
+                        }
+                        case 'platform': {
+                            this.context.drawImage(this.objectsAnimation[key], this[key].x, this[key].y);
+                        }
                     }
-                    case 'ball': {
-                        this.context.drawImage(
-                            this.objectsAnimation[key],
-                            0,
-                            0,
-                            this[key].width,
-                            this[key].height,
-                            this[key].x,
-                            this[key].y,
-                            this[key].width,
-                            this[key].height
-                        );
-                        break;
-                    }
-                    case 'block': {
-                        this.blocks.forEach(block => {
-                            this.context.drawImage(this.objectsAnimation[key], block.x, block.y);
-                        })
-                        break;
-                    }
-                    case 'platform': {
-                        this.context.drawImage(this.objectsAnimation[key], this[key].x, this[key].y);
-                    }
-                }
-            });
-        }
-        setTimeout(() => {
-            console.log('Wait...')
-        }, 1000);
-        this.render();
+                });
+            }
+        }, 10)
     },
 
     start() {
@@ -117,29 +116,29 @@ let game = {
 };
 
 game.ball = {
-    x: 320,
-    y: 240,
+    x: 390,
+    y: 450,
     width: 20,
     height: 20,
 
     start() {
-        this.y -= 5;
+        setInterval(() => {
+            this.y -= 5;
+        }, 30);
     }
 }
 
 game.platform = {
     x: 280,
-    y: 260,
+    y: 460,
     offset: 6,
     ball: game.ball,
 
     launchBall(key) {
-        key === CONTROLL_BUTTONS.SPACE ? ( // Не особо читаемо =)
-            this.ball !== null ? () => {
-                this.ball.start();
-                this.ball = null
-            } : null
-        ) : null
+        if(key === CONTROLL_BUTTONS.SPACE && this.ball !== null) {
+            this.ball.start();
+            this.ball = null;
+        }
     },
 
     move(key) {
@@ -151,6 +150,12 @@ game.platform = {
             this.ball !== null ? this.ball.x -= this.offset : null;
             this.x -= this.offset;
         }
+    }
+}
+
+game.settings = {
+    setSettings() {
+        // some logic
     }
 }
 
