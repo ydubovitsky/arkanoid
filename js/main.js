@@ -1,14 +1,15 @@
-let game = {
-    start: function() {
-        this.context = document.querySelector("#canvasId").getContext("2d");
-        let background = new Image();
-        background.src = "../img/background.png";
+const GAME = {
+    start: function () {
+        this.ctx = document.getElementById("canvasId").getContext("2d");
+        const backgroundImage = new Image();
+        backgroundImage.src = "../img/background.png";
+
         window.requestAnimationFrame(() => {
-            this.context.drawImage(background, 0, 0);
-        });
+            this.ctx.drawImage(backgroundImage, 0, 0);
+        })
     }
-};
+}
 
 window.addEventListener("load", () => {
-    game.start();
+    GAME.start();
 })
